@@ -1,5 +1,6 @@
 import telebot
 from PIL import Image
+import PIL.ImageOps 
 import io
 from telebot import types
 from telebot.types import Message
@@ -125,7 +126,8 @@ def get_options_keyboard():
     keyboard = types.InlineKeyboardMarkup()
     pixelate_btn = types.InlineKeyboardButton("Pixelate", callback_data="pixelate")
     ascii_btn = types.InlineKeyboardButton("ASCII Art", callback_data="ascii")
-    keyboard.add(pixelate_btn, ascii_btn)
+    enver_color = types.InlineKeyboardButton("Invers Colors", callback_data='invert_color') # Кнопка для инверсии цвета изображения
+    keyboard.add(pixelate_btn, ascii_btn).add(enver_color)
     return keyboard
 
 
@@ -140,7 +142,27 @@ def callback_query(call):
     elif call.data == "ascii":
         bot.answer_callback_query(call.id, "Converting your image to ASCII art...")
         ascii_and_send(call.message, ASCII_CHARS) # Передать в эту функцию набор аскии символов
+    elif call.data == 'invert_color':
+        bot.answer_callback_query(call.id, "Inverted image...")
+        inversing_colors(call.message)
 
+
+def inversing_colors(message: Message):
+    '''
+    Функция инвертирует цвет изображения
+    '''
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+
+    image_stream = io.BytesIO(downloaded_file)
+    image = Image.open(image_stream)
+    inversing_image = PIL.ImageOps.invert(image)
+
+    output_stream = io.BytesIO()
+    inversing_image.save(output_stream, format="JPEG")
+    output_stream.seek(0)
+    bot.send_photo(message.chat.id, output_stream)
 
 def pixelate_and_send(message):
     '''
