@@ -1,3 +1,4 @@
+import PIL.Image
 import telebot
 from PIL import Image
 import PIL.ImageOps 
@@ -127,7 +128,9 @@ def get_options_keyboard():
     pixelate_btn = types.InlineKeyboardButton("Pixelate", callback_data="pixelate")
     ascii_btn = types.InlineKeyboardButton("ASCII Art", callback_data="ascii")
     enver_color = types.InlineKeyboardButton("Invers Colors", callback_data='invert_color') # Кнопка для инверсии цвета изображения
-    keyboard.add(pixelate_btn, ascii_btn).add(enver_color)
+    horisontal_image = types.InlineKeyboardButton('Horizontal reflection', callback_data='horiz_reflect') # Для горизонтального отражения фотографии
+    vertical_image = types.InlineKeyboardButton('Vertical reflection', callback_data='vertical_reflect') # Для вертикального отражения фотографии
+    keyboard.add(pixelate_btn, ascii_btn).add(enver_color).add(horisontal_image, vertical_image)
     return keyboard
 
 
@@ -145,7 +148,36 @@ def callback_query(call):
     elif call.data == 'invert_color':
         bot.answer_callback_query(call.id, "Inverted image...")
         inversing_colors(call.message)
+    elif call.data == 'horiz_reflect':
+        mirror_image(message=call.message, transponse='HORIZONTAL')
+    elif call.data == 'vertical_reflect':
+        mirror_image(message=call.message, transponse='VERTICAL')
 
+
+def mirror_image(message: Message, transponse: str):
+    '''
+    transponse - принимает два аргумента для горизонтального и вертикального отображения
+    Функция для горизонтального отображения фотографии
+    '''
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image_stream = io.BytesIO(downloaded_file)
+    image = Image.open(image_stream)
+    if transponse == 'HORIZONTAL':
+        horisontal_reflect = image.transpose(method=Image.FLIP_TOP_BOTTOM)
+        output_stream = io.BytesIO()
+        horisontal_reflect.save(output_stream, format="JPEG")
+        output_stream.seek(0)
+        bot.send_photo(message.chat.id, output_stream, caption='Horizontal reflection')
+        return 0
+    elif transponse == 'VERTICAL':
+        horisontal_reflect = image.transpose(method=Image.FLIP_LEFT_RIGHT )
+        output_stream = io.BytesIO()
+        horisontal_reflect.save(output_stream, format="JPEG")
+        output_stream.seek(0)
+        bot.send_photo(message.chat.id, output_stream, caption='Vertical reflection')
+        return 0
 
 def inversing_colors(message: Message):
     '''
