@@ -130,7 +130,8 @@ def get_options_keyboard():
     enver_color = types.InlineKeyboardButton("Invers Colors", callback_data='invert_color') # Кнопка для инверсии цвета изображения
     horisontal_image = types.InlineKeyboardButton('Horizontal reflection', callback_data='horiz_reflect') # Для горизонтального отражения фотографии
     vertical_image = types.InlineKeyboardButton('Vertical reflection', callback_data='vertical_reflect') # Для вертикального отражения фотографии
-    keyboard.add(pixelate_btn, ascii_btn).add(enver_color).add(horisontal_image, vertical_image)
+    temp_map = types.InlineKeyboardButton('Heat map Image', callback_data='heat_map') # Для преобразования изображения в тепловую карту
+    keyboard.add(pixelate_btn, ascii_btn).add(enver_color).add(horisontal_image, vertical_image).add(temp_map)
     return keyboard
 
 
@@ -152,8 +153,26 @@ def callback_query(call):
         mirror_image(message=call.message, transponse='HORIZONTAL')
     elif call.data == 'vertical_reflect':
         mirror_image(message=call.message, transponse='VERTICAL')
+    elif call.data == 'heat_map':
+        convert_to_heatmap(message=call.message)
+    
 
-
+def convert_to_heatmap(message: Message):
+    '''
+    Преобразует изображение в тепловую карту
+    '''
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image_stream = io.BytesIO(downloaded_file)
+    image = Image.open(image_stream).convert('L')
+    heat_map = PIL.ImageOps.colorize(image=image, black='blue', white='white')
+    output_stream = io.BytesIO()
+    heat_map.save(output_stream, format="JPEG")
+    output_stream.seek(0)
+    bot.send_photo(message.chat.id, output_stream, caption='Heat map')
+    
+    
 def mirror_image(message: Message, transponse: str):
     '''
     transponse - принимает два аргумента для горизонтального и вертикального отображения
