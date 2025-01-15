@@ -99,6 +99,7 @@ def send_welcome(message):
     Предлагает пользователю ввести свой набор ASCII символов
     '''
     bot.reply_to(message, "Enter the set using the symbol: ")
+    
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message: Message):
@@ -131,7 +132,8 @@ def get_options_keyboard():
     horisontal_image = types.InlineKeyboardButton('Horizontal reflection', callback_data='horiz_reflect') # Для горизонтального отражения фотографии
     vertical_image = types.InlineKeyboardButton('Vertical reflection', callback_data='vertical_reflect') # Для вертикального отражения фотографии
     temp_map = types.InlineKeyboardButton('Heat map Image', callback_data='heat_map') # Для преобразования изображения в тепловую карту
-    keyboard.add(pixelate_btn, ascii_btn).add(enver_color).add(horisontal_image, vertical_image).add(temp_map)
+    resize_image = types.InlineKeyboardButton("Resize for sticker", callback_data='res_img') # Для изменения размера фотографии до 512 пикселей
+    keyboard.add(pixelate_btn, ascii_btn).add(enver_color).add(horisontal_image, vertical_image).add(temp_map, resize_image)
     return keyboard
 
 
@@ -155,7 +157,37 @@ def callback_query(call):
         mirror_image(message=call.message, transponse='VERTICAL')
     elif call.data == 'heat_map':
         convert_to_heatmap(message=call.message)
+    elif call.data == 'res_img':
+        resize_for_sticker(message=call.message)
+
+
+def resize_for_sticker(message: Message):
+    '''
+    Преобразует размер изображения до 512 пикселей
+    '''
+    photo_id = user_states[message.chat.id]['photo']
+    file_info = bot.get_file(photo_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    image_stream = io.BytesIO(downloaded_file)
+    image = Image.open(image_stream)
+    width, height = image.size
+    new_size = (0,0)
+    if width > height:
+        ratio = width / 512
+        new_height = int(height / ratio)
+        new_size = (512, new_height)
+    else:
+        ratio = height / 512
+        new_widht = int(height / ratio)
+        new_size = (new_widht, 512)
+        
     
+    new_resize = image.resize(new_size)
+    output_stream = io.BytesIO()
+    new_resize.save(output_stream, format="JPEG")
+    output_stream.seek(0)
+    bot.send_photo(message.chat.id, output_stream, caption='Resize for sticker')
+
 
 def convert_to_heatmap(message: Message):
     '''
