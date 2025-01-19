@@ -7,6 +7,7 @@ from telebot import types
 from telebot.types import Message
 from dotenv import load_dotenv
 import os
+import random
 
 load_dotenv()
 TOKEN_BOT = os.getenv('TOKEN_BOT')
@@ -19,6 +20,13 @@ user_states = {}  # тут будем хранить информацию о д�
 # набор символов из которых составляем изображение
 ASCII_CHARS = '@%#*+=-:. '
 
+#Хранит в себе случайные шутки
+JOKES = ['What do you call a bear with no teeth? A gummy bear.',
+         'What did the tree say when spring arrived? What a re-leaf!',
+         'Why was six nervous? Because seven eight nine.',
+         'What do evil hens lay? Deviled eggs.',
+         'I once met a giant. I didn\'t know what to say, so I used big words.',
+         'What do bees use to fix their hair? Honeycombs.'] 
 
 def resize_image(image, new_width=100):
     '''
@@ -100,6 +108,15 @@ def send_welcome(message):
     '''
     bot.reply_to(message, "Enter the set using the symbol: ")
     
+    
+@bot.message_handler(commands=['random_joke'])
+def random_joke(message: Message):
+    '''
+    Функция выводит в сообщения одну случайную шутку
+    '''
+    bot.send_message(chat_id=message.from_user.id,
+                     text=f'{random.choice(JOKES)}')
+
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message: Message):
@@ -161,6 +178,7 @@ def callback_query(call):
         resize_for_sticker(message=call.message)
 
 
+    
 def resize_for_sticker(message: Message):
     '''
     Преобразует размер изображения до 512 пикселей
