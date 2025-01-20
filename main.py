@@ -28,6 +28,12 @@ JOKES = ['What do you call a bear with no teeth? A gummy bear.',
          'I once met a giant. I didn\'t know what to say, so I used big words.',
          'What do bees use to fix their hair? Honeycombs.'] 
 
+COMPLIMENT = ['Ты такой умный',
+              'Ваша решимость и настойчивость достойны восхищения и вдохновляют.',
+              'У вас отличный вкус на фильмы, и вы всегда рекомендуете самые лучшие.',
+              'У тебя отличное чувство юмора, и ты всегда знаешь, как меня рассмешить.',
+              'У тебя уникальный взгляд на жизнь, который всегда заставляет меня задуматься.']
+
 def resize_image(image, new_width=100):
     '''
     Изменяет размер изображения с сохранением пропорций
@@ -117,6 +123,14 @@ def random_joke(message: Message):
     bot.send_message(chat_id=message.from_user.id,
                      text=f'{random.choice(JOKES)}')
 
+
+@bot.message_handler(commands=['random_compliment'])
+def random_compliment(message: Message):
+    '''
+    Функция вывод пользователю случайный комплимент
+    '''
+    bot.send_message(chat_id=message.from_user.id,
+                     text=f'{random.choice(COMPLIMENT)}')
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message: Message):
