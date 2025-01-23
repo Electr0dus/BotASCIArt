@@ -34,6 +34,9 @@ COMPLIMENT = ['Ты такой умный',
               'У тебя отличное чувство юмора, и ты всегда знаешь, как меня рассмешить.',
               'У тебя уникальный взгляд на жизнь, который всегда заставляет меня задуматься.']
 
+
+RESULT_COIN = ['Heads', 'Tails']
+
 def resize_image(image, new_width=100):
     '''
     Изменяет размер изображения с сохранением пропорций
@@ -113,6 +116,14 @@ def send_welcome(message):
     Предлагает пользователю ввести свой набор ASCII символов
     '''
     bot.reply_to(message, "Enter the set using the symbol: ")
+    
+@bot.message_handler(commands=['flip'])
+def get_coin_side(message: Message):
+    '''
+    Возвращает случайную сторону монеты при подкидывании
+    '''
+    bot.send_message(chat_id=message.from_user.id,
+                     text=f'Выпала сторона: {random.choice(RESULT_COIN)}')
     
     
 @bot.message_handler(commands=['random_joke'])
